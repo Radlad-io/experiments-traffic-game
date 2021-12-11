@@ -1,22 +1,3 @@
-/*
-
-Three.js video tutorial explaining the source code
-
-Youtube: https://youtu.be/JhgBwJn1bQw
-
-In the tutorial, we go through the source code of this game. We cover, how to set up a Three.js scene with box objects, how to add lights, how to set up the camera, how to add animation and event handlers. We also add textures with HTML Canvas and learn how to draw 2D shapes in Three.js then how to turn them into extruded geometries.
-
-Comparing to the tutorial this version has some extra features:
-- trucks also pop up on the other track
-- the extruded geometry also has a texture
-- there are trees around the track
-- shadows
-- the game reacts to window resizing
-
-Check out my YouTube channel for other game tutorials: https://www.youtube.com/channel/UCxhgW0Q5XLvIoXHAfQXg9oQ
-
-*/
-
 import "./style.css";
 import * as THREE from "three";
 import { CSG } from "three-csg-ts";
@@ -46,8 +27,6 @@ function pickRandom(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-// The Pythagorean theorem says that the distance between two points is
-// the square root of the sum of the horizontal and vertical distance's square
 function getDistance(coordinate1, coordinate2) {
   const horizontalDistance = coordinate2.x - coordinate1.x;
   const verticalDistance = coordinate2.y - coordinate1.y;
@@ -84,7 +63,7 @@ const config = {
 
 let score;
 let isNight = false;
-let headlightIntensity = 4;
+let headlightIntensity = 0;
 const speed = 0.0017;
 
 const playerAngleInitial = Math.PI;
@@ -216,7 +195,7 @@ const StreetLamp = () => {
   const decay = 0.9;
   const rightlight = new THREE.SpotLight(
     0xffffff,
-    1.5,
+    0,
     distance,
     penumbra,
     angel,
@@ -230,7 +209,7 @@ const StreetLamp = () => {
 
   const leftlight = new THREE.SpotLight(
     0xffffff,
-    1.5,
+    0,
     distance,
     penumbra,
     angel,
@@ -272,6 +251,10 @@ function reset() {
   // Reset position and score
   playerAngleMoved = 0;
   ambientLight.intensity = 0.75;
+  playerCar.children[6].children[1].intensity = 0;
+  playerCar.children[7].children[1].intensity = 0;
+  lamp.children[7].intensity = 0;
+  lamp.children[9].intensity = 0;
   scene.fog.near = 1000;
   isNight = false;
   score = 0;
@@ -308,8 +291,12 @@ function reset() {
 function startGame() {
   if (ready) {
     ready = false;
-    carSound.play();
-    musicSound.play();
+    if (!carSound.isPlaying) {
+      carSound.play();
+    }
+    if (!musicSound.isPlaying) {
+      musicSound.play();
+    }
     scoreElement.innerText = `Laps: ${score}`;
     buttonsElement.style.opacity = 1;
     instructionsElement.style.opacity = 0;
@@ -1070,14 +1057,28 @@ accelerateButton.addEventListener("mousedown", function () {
   startGame();
   accelerate = true;
 });
+accelerateButton.addEventListener("touchstart", function () {
+  startGame();
+  accelerate = true;
+});
 decelerateButton.addEventListener("mousedown", function () {
+  startGame();
+  decelerate = true;
+});
+decelerateButton.addEventListener("touchstart", function () {
   startGame();
   decelerate = true;
 });
 accelerateButton.addEventListener("mouseup", function () {
   accelerate = false;
 });
+accelerateButton.addEventListener("touchend", function () {
+  accelerate = false;
+});
 decelerateButton.addEventListener("mouseup", function () {
+  decelerate = false;
+});
+decelerateButton.addEventListener("touchend", function () {
   decelerate = false;
 });
 
@@ -1141,15 +1142,25 @@ function animation(timestamp) {
   hitDetection();
 
   if (isNight && scene.fog.near > 0) {
-    scene.fog.near -= 10;
+    scene.fog.near -= 20;
   } else if (!isNight && scene.fog.near < 1000) {
-    scene.fog.near += 10;
+    scene.fog.near += 20;
   }
 
   if (isNight && ambientLight.intensity > 0.0025) {
     ambientLight.intensity -= 0.01;
   } else if (!isNight && ambientLight.intensity < 0.75) {
     ambientLight.intensity += 0.01;
+  }
+
+  if (isNight && playerCar.children[6].children[1].intensity < 4) {
+    playerCar.children[6].children[1].intensity += 0.025;
+    playerCar.children[7].children[1].intensity += 0.025;
+  }
+
+  if (isNight && lamp.children[9].intensity < 1.5) {
+    lamp.children[7].intensity += 0.025;
+    lamp.children[9].intensity += 0.025;
   }
 
   renderer.render(scene, camera);

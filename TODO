@@ -1,9 +1,9 @@
 
 Todo:
-  ☐ Create lighting system
+  x Create lighting system
     x Create headlights
-    ☐ Create street lamp
-    ☐ Add day night cycle
+    x Create street lamp
+    x Add day night cycle
   x Create a convertible car model for the players car
     Makes use of ThreeBSP to create subtractive shapes
     https://stackoverflow.com/questions/59802750/how-create-window-holes-or-subtract-geometry-in-three-js
@@ -12,5 +12,5 @@ Todo:
     x Add music
     x Add car sound (decelerate / accelerate)
     x Add crash sound
-  ☐ Helper pages for each model
+  x Helper pages for convertivle model
   
