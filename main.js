@@ -20,6 +20,7 @@ Check out my YouTube channel for other game tutorials: https://www.youtube.com/c
 import "./style.css";
 import * as THREE from "three";
 import { CSG } from "three-csg-ts";
+import { gsap } from "gsap";
 
 window.focus(); // Capture keys right away (by default focus is on editor)
 
@@ -33,9 +34,10 @@ let storedUserHighScore = localStorage.getItem("highScore");
 if (!storedUserHighScore) {
   storeUserHighScore(0);
 }
-
+console.log(storedUserHighScore);
 // Stores high score in application and adds it to UI
-let userHighScore = parseInt(storedUserHighScore);
+let userHighScore =
+  storedUserHighScore === null ? 0 : parseInt(storedUserHighScore);
 const highScoreElement = document.getElementById("highScore");
 highScoreElement.innerText = `High Score: ${userHighScore}`;
 
@@ -81,6 +83,8 @@ const config = {
 };
 
 let score;
+let isNight = false;
+let headlightIntensity = 4;
 const speed = 0.0017;
 
 const playerAngleInitial = Math.PI;
@@ -137,7 +141,8 @@ camera.position.set(0, -210, 300);
 camera.lookAt(0, 0, 0);
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x333333, -1000, 1000);
+scene.background = new THREE.Color(0x000000);
+scene.fog = new THREE.Fog(0x333333, 1000, 1000);
 
 const playerCar = Convertible();
 scene.add(playerCar);
@@ -145,7 +150,7 @@ scene.add(playerCar);
 renderMap(cameraWidth, cameraHeight * 2); // The map height is higher because we look at the map from an angle
 
 // Set up lights
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.025);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
 scene.add(ambientLight);
 
 const dirLight = new THREE.DirectionalLight(0xfff8a1, 0.005);
@@ -211,7 +216,7 @@ const StreetLamp = () => {
   const decay = 0.9;
   const rightlight = new THREE.SpotLight(
     0xffffff,
-    6,
+    1.5,
     distance,
     penumbra,
     angel,
@@ -225,7 +230,7 @@ const StreetLamp = () => {
 
   const leftlight = new THREE.SpotLight(
     0xffffff,
-    6,
+    1.5,
     distance,
     penumbra,
     angel,
@@ -266,11 +271,9 @@ reset();
 function reset() {
   // Reset position and score
   playerAngleMoved = 0;
-  if (score > userHighScore) {
-    userHighScore = score;
-    storeUserHighScore(userHighScore);
-    highScoreElement.innerText = `High Score: ${userHighScore}`;
-  }
+  ambientLight.intensity = 0.75;
+  scene.fog.near = 1000;
+  isNight = false;
   score = 0;
   scoreElement.innerText = "Press UP";
 
@@ -307,7 +310,7 @@ function startGame() {
     ready = false;
     carSound.play();
     musicSound.play();
-    scoreElement.innerText = 0;
+    scoreElement.innerText = `Laps: ${score}`;
     buttonsElement.style.opacity = 1;
     instructionsElement.style.opacity = 0;
     renderer.setAnimationLoop(animation);
@@ -810,12 +813,20 @@ function Headlight(projecting) {
   const distance = 600;
   const angel = Math.PI / 1.65;
   const penumbra = 0.25;
+
   if (projecting) {
-    const light = new THREE.SpotLight(0xffffff, 12, distance, penumbra, angel);
+    const light = new THREE.SpotLight(
+      0xffffff,
+      headlightIntensity,
+      distance,
+      penumbra,
+      angel
+    );
     light.castShadow = true;
     light.shadow.mapSize.width = 1024;
     light.shadow.mapSize.height = 1024;
     light.target.position.set(600, 0, 10);
+    light.position.set(-35, 0, 0);
     headlight.add(light.target);
     headlight.add(light);
   }
@@ -1069,7 +1080,7 @@ accelerateButton.addEventListener("mouseup", function () {
 decelerateButton.addEventListener("mouseup", function () {
   decelerate = false;
 });
-// TODO: Add car playbackRate changes here
+
 window.addEventListener("keydown", function (event) {
   if (event.key == "ArrowUp") {
     startGame();
@@ -1112,10 +1123,14 @@ function animation(timestamp) {
 
   const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI * 2));
 
+  if (laps > 9) {
+    isNight = true;
+  }
+
   // Update score if it changed
   if (laps != score) {
     score = laps;
-    scoreElement.innerText = `Score: ${score}`;
+    scoreElement.innerText = `Laps: ${score}`;
   }
 
   // Add a new vehicle at the beginning and with every 5th lap
@@ -1124,6 +1139,18 @@ function animation(timestamp) {
   moveOtherVehicles(timeDelta);
 
   hitDetection();
+
+  if (isNight && scene.fog.near > 0) {
+    scene.fog.near -= 10;
+  } else if (!isNight && scene.fog.near < 1000) {
+    scene.fog.near += 10;
+  }
+
+  if (isNight && ambientLight.intensity > 0.0025) {
+    ambientLight.intensity -= 0.01;
+  } else if (!isNight && ambientLight.intensity < 0.75) {
+    ambientLight.intensity += 0.01;
+  }
 
   renderer.render(scene, camera);
   lastTimestamp = timestamp;
@@ -1305,6 +1332,11 @@ function hitDetection() {
     if (resultsElement) resultsElement.style.display = "flex";
     carSound.pause();
     crashSound.play();
+    if (score > userHighScore) {
+      userHighScore = score;
+      storeUserHighScore(userHighScore);
+      highScoreElement.innerText = `High Score: ${userHighScore}`;
+    }
     renderer.setAnimationLoop(null); // Stop animation loop
   }
 }
