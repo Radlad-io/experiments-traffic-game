@@ -5,6 +5,17 @@ import { gsap } from "gsap";
 
 window.focus(); // Capture keys right away (by default focus is on editor)
 
+// Info Button
+const infoBtn = document.querySelector("#infoBtn");
+const infoModal = document.querySelector("#infoModal");
+infoBtn.addEventListener("click", () => {
+  if (infoModal.style.opacity > 0) {
+    infoModal.style.opacity = 0;
+  } else {
+    infoModal.style.opacity = 1;
+  }
+});
+
 // Stores high score in the browser's localStorage
 const storeUserHighScore = (score) => {
   localStorage.setItem("highScore", `${score}`);

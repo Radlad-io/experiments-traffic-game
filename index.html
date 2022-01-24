@@ -6,16 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Threejs | Traffic Game</title>
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XEFYN2993N"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-XEFYN2993N"
+    ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-XEFYN2993N');
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-XEFYN2993N");
     </script>
   </head>
   <body>
+    <button id="infoBtn">Info</button>
+    <div id="infoModal">
+      <h1>Traffic Game</h1>
+      <br />
+      <p>
+        This project is based on a
+        <a href="https://www.youtube.com/watch?v=JhgBwJn1bQw">tutorial</a> and
+        the original version can be played
+        <a href="https://codepen.io/HunorMarton/pen/ExNzWqm">here</a>. In order
+        to solidify what I learned in the tutorial I expanded the project to
+        include music and sound effects. Remodeled the car to be a convertible.
+        Used the sessionStorage API to store the users highscore. Added lighting
+        and created a foggy night cycle which kicks in after the user reaches 10
+        laps.
+      </p>
+    </div>
+
     <div id="highScore">High Score:</div>
     <div id="score">Press UP</div>
 
